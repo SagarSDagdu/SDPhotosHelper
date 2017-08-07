@@ -1,10 +1,10 @@
 Pod::Spec.new do |s|
 s.name             = 'SDPhotosHelper'
 s.version          = '1.0.0'
-s.summary          = 'A simple helper class for adding images and videos to Custom Albums using PHPhotos framework'
+s.summary          = 'A simple helper class for adding images and videos to Custom Albums using PHPhotoLibrary framework'
 
 s.description      = <<-DESC
-SDPhotos helper uses the APIs provided by PHPhotos framework introduced by Apple. It eases out the process of adding media to Custom Album in Photos.
+SDPhotos helper uses the APIs provided by PHPhotoLibrary framework introduced by Apple. It eases out the process of adding media to Custom Album in Photos.
 DESC
 
 s.homepage         = 'https://github.com/SagarSDagdu/SDPhotosHelper'
