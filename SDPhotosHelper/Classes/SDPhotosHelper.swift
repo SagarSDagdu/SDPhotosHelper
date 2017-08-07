@@ -47,12 +47,9 @@ public class SDPhotosHelper: NSObject {
         PHPhotoLibrary.shared().performChanges({
             PHAssetCollectionChangeRequest.creationRequestForAssetCollection(withTitle: title)
         }) { (didSucceed, error) in
-            if didSucceed {
-                result(didSucceed,nil)
-            }
-            else {
-                result(false,error)
-            }
+            OperationQueue.main.addOperation({ 
+                didSucceed ? result(didSucceed,nil) : result(false,error)
+            })
         }
     }
     
@@ -78,12 +75,9 @@ public class SDPhotosHelper: NSObject {
                 localIdentifier = (placeHolder?.localIdentifier)!
             }
         }) { (didSucceed, error) in
-            if didSucceed {
-                success(localIdentifier)
-            }
-            else {
-                failure(error)
-            }
+            OperationQueue.main.addOperation({ 
+                didSucceed ? success(localIdentifier) : failure(error)
+            })
         }
     }
     
@@ -111,10 +105,14 @@ public class SDPhotosHelper: NSObject {
         if let asset = self.getAsset(fromAlbum: album, withLocalIdentifier: identifier) {
             let imageManager = PHImageManager.default()
             imageManager.requestImage(for: asset, targetSize: PHImageManagerMaximumSize, contentMode: .aspectFit, options: nil) { (image, info) in
-                success(image)
+                OperationQueue.main.addOperation({ 
+                    success(image)
+                })
             }
         } else {
-            failure(SDPhotosHelper.assetNotFoundError)
+            OperationQueue.main.addOperation({
+                failure(SDPhotosHelper.assetNotFoundError)
+            })
         }
     }
     
@@ -145,12 +143,9 @@ public class SDPhotosHelper: NSObject {
             }
         })
         { (didSucceed, error) in
-            if didSucceed {
-                success(localIdentifier)
-            }
-            else {
-                failure(error)
-            }
+            OperationQueue.main.addOperation({
+                didSucceed ? success(localIdentifier) : failure(error)
+            })
         }
     }
     
@@ -168,10 +163,14 @@ public class SDPhotosHelper: NSObject {
             options.version = .original
             PHImageManager.default().requestAVAsset(forVideo: asset, options: options, resultHandler: { (avAsset, avAudioMix, info) in
                 let urlAsset = avAsset as! AVURLAsset
-                success(urlAsset.url)
+                OperationQueue.main.addOperation({ 
+                    success(urlAsset.url)
+                })
             })
         } else {
-            failure(SDPhotosHelper.assetNotFoundError)
+            OperationQueue.main.addOperation({
+                failure(SDPhotosHelper.assetNotFoundError)
+            })
         }
     }
     

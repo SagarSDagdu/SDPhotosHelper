@@ -14,8 +14,6 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var imageView: UIImageView!
     
-    var identifier:String = ""
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         SDPhotosHelper.createAlbum(withTitle: self.albumName) { (success, error) in
@@ -37,16 +35,12 @@ class ViewController: UIViewController {
         
         SDPhotosHelper.addNewImage(image, toAlbum: self.albumName, onSuccess: { ( identifier) in
             print("Saved image successfully, identifier is \(identifier)")
-            self.identifier = identifier
-            
-            SDPhotosHelper.getImage(withIdentifier: self.identifier, fromAlbum: self.albumName, onSuccess: { (image) in
-                self.imageView.image = image
-            }, onFailure: { (error) in
-                if let error = error {
-                    print("Error in getting image : \(error.localizedDescription)")
-                }
+            let alert = UIAlertController.init(title: "Success", message: "Image added, id : \(identifier)", preferredStyle: .alert)
+            let actionOk = UIAlertAction.init(title: "OK", style: .cancel, handler: nil)
+            alert.addAction(actionOk)
+            OperationQueue.main.addOperation({ 
+                self.present(alert, animated: true, completion: nil)
             })
-            
         }) { (error) in
             if let error = error {
                 print("Error in creating album : \(error.localizedDescription)")
