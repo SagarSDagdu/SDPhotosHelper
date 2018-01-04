@@ -34,7 +34,6 @@ public class SDPhotosHelper: NSObject {
     static let assetCreationFailure = NSError(domain: "SDPhotosHelper", code: 1002, userInfo: [NSLocalizedDescriptionKey : "Asset could not be added from the given source"])
     static let albumNotFoundError : NSError = NSError(domain: "SDPhotosHelper", code: 1003, userInfo: [NSLocalizedDescriptionKey : "Album with given name was not found"])
     
-    
     //MARK:- Methods
     
     public static func createAlbum(withTitle title:String,
@@ -116,6 +115,65 @@ public class SDPhotosHelper: NSObject {
         }
     }
     
+    public static func getImages(fromAlbum album:String,
+                                 onSuccess success:@escaping([UIImage])->Void,
+                                 onFailure failure:@escaping(Error?)->Void)  {
+        
+        guard let album = self.getAlbum(withName: album) else {
+            failure(SDPhotosHelper.albumNotFoundError)
+            return 
+        }
+        let optionsOrderImage  = PHFetchOptions()
+        optionsOrderImage.sortDescriptors = [ NSSortDescriptor(key: "creationDate", ascending: false) ]
+        
+        let photos = PHAsset.fetchAssets(in: album, options: optionsOrderImage)
+        var images : [UIImage] = []
+        
+        photos.enumerateObjects(_:) { (asset, count, stop) in
+            let image = SDPhotosHelper.getImageFromAsset(asset)
+            images.append(image)
+        }
+        OperationQueue.main.addOperation({
+            success(images)
+        })
+    }
+        
+    public static func deleteImage(withIdentifier identifier:String,
+                                   fromAlbum album:String,
+                                   onSuccess success:@escaping(Bool)->Void,
+                                   onFailure failure:@escaping(Error?)->Void) {
+        var deleted = false
+        if let fetchresult = self.getAssetFetchResult(fromAlbum: album, withLocalIdentifier: identifier) {
+            
+            PHPhotoLibrary.shared().performChanges({
+                if let album = getAlbum(withName: album) {
+                    let request = PHAssetCollectionChangeRequest(for: album, assets: fetchresult)
+                    if let asset = fetchresult.firstObject {
+                        let fastEnumeration : NSArray = [asset] as NSArray
+                        request?.removeAssets(fastEnumeration)
+                        deleted = true
+                    }
+                    else {
+                        failure(SDPhotosHelper.assetNotFoundError)
+                    }
+                }
+                else {
+                   failure(SDPhotosHelper.albumNotFoundError)
+                }
+            }, completionHandler: { (didSucceed, error) in
+                
+                OperationQueue.main.addOperation({
+                    didSucceed ? success(deleted) : failure(error)
+                })
+                
+            })
+        } else {
+            OperationQueue.main.addOperation({
+                failure(SDPhotosHelper.assetNotFoundError)
+            })
+        }
+    }
+    
     //MARK:- Video Utilities
     
     public static func addNewVideo(withFileUrl fileUrl:URL,
@@ -176,6 +234,19 @@ public class SDPhotosHelper: NSObject {
     
     //MARK:- Private helper methods
     
+     fileprivate static func getImageFromAsset(_ asset: PHAsset) -> UIImage {
+        let manager = PHImageManager.default()
+        let option = PHImageRequestOptions()
+        var image = UIImage()
+        option.isSynchronous = true
+        
+        manager.requestImage(for: asset, targetSize: PHImageManagerMaximumSize, contentMode: .aspectFill, options: option, resultHandler: {(result, info)->Void in
+            image = result!
+        })
+        return image
+    }
+    
+    
     fileprivate static func getAsset(fromAlbum album:String,
                                      withLocalIdentifier localIdentifier:String) -> PHAsset? {
         
@@ -190,6 +261,17 @@ public class SDPhotosHelper: NSObject {
             return nil
         }
         return fetchResult.firstObject
+    }
+    
+    fileprivate static func getAssetFetchResult(fromAlbum album:String,
+                                     withLocalIdentifier localIdentifier:String) -> PHFetchResult<PHAsset>? {
+        
+        let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: [localIdentifier],
+                                              options: nil)
+        guard fetchResult.count > 0 else {
+            return nil
+        }
+        return fetchResult
     }
     
     fileprivate static func getAlbum(withName name:String) -> PHAssetCollection? {
