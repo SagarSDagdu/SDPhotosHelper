@@ -33,7 +33,6 @@ public class SDPhotosHelper: NSObject {
     static let assetNotFoundError : NSError = NSError(domain: "SDPhotosHelper", code: 1001, userInfo: [NSLocalizedDescriptionKey : "Asset with given identifier not found"])
     static let assetCreationFailure = NSError(domain: "SDPhotosHelper", code: 1002, userInfo: [NSLocalizedDescriptionKey : "Asset could not be added from the given source"])
     static let albumNotFoundError : NSError = NSError(domain: "SDPhotosHelper", code: 1003, userInfo: [NSLocalizedDescriptionKey : "Album with given name was not found"])
-    static let assetDeletionFailure = NSError(domain: "SDPhotosHelper", code: 1004, userInfo: [NSLocalizedDescriptionKey : "Asset could not be deleted from the given source"]) 
     
     //MARK:- Methods
     
